@@ -1,15 +1,21 @@
-from fastapi import FastAPI, Request
-from pydantic import BaseModel
 from transformers import pipeline
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-app = FastAPI()
 summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
 
-class TextInput(BaseModel):
+app = FastAPI()
+
+class SummaryRequest(BaseModel):
     text: str
 
-
 @app.post("/summarize")
-def summarize_text(input: TextInput):
-    summary = summarizer(input.text, max_length=130, min_length=30, do_sample=False)
+def summarize(req: SummaryRequest):
+    summary = summarizer(
+        req.text,
+        max_length=55,
+        min_length=15,
+        do_sample=True,
+        temperature=0.8
+    )
     return {"summary": summary[0]["summary_text"]}
